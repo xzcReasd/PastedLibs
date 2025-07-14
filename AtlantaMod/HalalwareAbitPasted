@@ -74,9 +74,9 @@ local M = getgenv().M
 local T = getgenv().T
 local STR = getgenv().STR
 
-getgenv().Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/xzcReasd/PastedLibs/refs/heads/main/AtlantaMod/libtest'))()
-getgenv().ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/xzcReasd/PastedLibs/refs/heads/main/AtlantaMod/themes'))()
-getgenv().SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/xzcReasd/PastedLibs/refs/heads/main/AtlantaMod/savemanar'))()
+getgenv().Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/ZXCdswqezxc/halalware/refs/heads/main/libtest'))()
+getgenv().ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/ZXCdswqezxc/halalware/refs/heads/main/themes'))()
+getgenv().SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/ZXCdswqezxc/halalware/refs/heads/main/savemanager'))()
 local repo = getgenv().repo
 local Library = getgenv().Library
 local ThemeManager = getgenv().ThemeManager
@@ -2060,6 +2060,164 @@ getgenv().SelfHighlightDependency:AddSlider('SelfHighlightOutlineTransparency', 
 -- Устанавливаем зависимость от тогла SelfHighlight
 getgenv().SelfHighlightDependency:SetupDependencies({{Toggles.SelfHighlightEnabled, true}})
 
+-- === SelfTransparency (в той же секции) ===
+-- Делаем конфигурацию глобальной
+getgenv().SelfTransparencyConfig = {
+    Enabled = false,
+    Transparency = 0.5, -- Значение от 0 до 1
+    OriginalTransparency = {}, -- Для хранения оригинальных значений прозрачности
+}
+
+-- Функция для применения прозрачности
+getgenv().applySelfTransparency = function()
+    if not Char then return end
+    
+    pcall(function()
+        local config = getgenv().SelfTransparencyConfig
+        
+        -- Обрабатываем основные части тела R15
+        local r15BodyParts = {
+            "Head", 
+            "UpperTorso", "LowerTorso", 
+            "LeftUpperArm", "LeftLowerArm", "LeftHand",
+            "RightUpperArm", "RightLowerArm", "RightHand",
+            "LeftUpperLeg", "LeftLowerLeg", "LeftFoot",
+            "RightUpperLeg", "RightLowerLeg", "RightFoot"
+        }
+        
+        -- Обрабатываем основные части тела R6
+        local r6BodyParts = {
+            "Head", "Torso", 
+            "Left Arm", "Right Arm", 
+            "Left Leg", "Right Leg"
+        }
+        
+        -- Применяем к частям тела
+        for _, part in ipairs(Char:GetChildren()) do
+            if part:IsA("BasePart") and 
+               (table.find(r15BodyParts, part.Name) or table.find(r6BodyParts, part.Name)) and 
+               part.Name ~= "HumanoidRootPart" then
+                
+                -- Сохраняем оригинальное значение прозрачности, если еще не сохранено
+                if not config.OriginalTransparency[part] then
+                    config.OriginalTransparency[part] = part.Transparency
+                end
+                
+                -- Применяем новую прозрачность
+                part.Transparency = config.Transparency
+            end
+            
+            -- Обрабатываем аксессуары
+            if part:IsA("Accessory") then
+                local handle = part:FindFirstChild("Handle")
+                if handle then
+                    if not config.OriginalTransparency[handle] then
+                        config.OriginalTransparency[handle] = handle.Transparency
+                    end
+                    
+                    handle.Transparency = config.Transparency
+                end
+            end
+        end
+    end)
+end
+
+-- Функция для отключения прозрачности
+getgenv().removeSelfTransparency = function()
+    if not Char then return end
+    
+    pcall(function()
+        local config = getgenv().SelfTransparencyConfig
+        
+        -- Восстанавливаем оригинальные значения прозрачности
+        for part, transparency in pairs(config.OriginalTransparency) do
+            if part and part:IsDescendantOf(game) then
+                pcall(function()
+                    part.Transparency = transparency
+                end)
+            end
+        end
+        
+        -- Очищаем сохраненные значения прозрачности
+        config.OriginalTransparency = {}
+    end)
+end
+
+-- Функция для обновления при смене персонажа
+getgenv().updateSelfTransparencyOnCharacterChange = function(char)
+    -- Обновляем глобальную ссылку на персонажа
+    Char = char
+    
+    -- Обновляем части тела
+    Body = {
+        Hum = Char:FindFirstChildOfClass('Humanoid'),
+        HRP = Char:FindFirstChild('HumanoidRootPart'),
+        Head = Char:FindFirstChild('Head'),
+        Tor = Char:FindFirstChild('Torso') or Char:FindFirstChild('UpperTorso'),
+        LA = Char:FindFirstChild('Left Arm') or Char:FindFirstChild('LeftUpperArm'),
+        RA = Char:FindFirstChild('Right Arm') or Char:FindFirstChild('RightUpperArm'),
+        LL = Char:FindFirstChild('Left Leg') or Char:FindFirstChild('LeftUpperLeg'),
+        RL = Char:FindFirstChild('Right Leg') or Char:FindFirstChild('RightUpperLeg'),
+    }
+    
+    pcall(function()
+        local config = getgenv().SelfTransparencyConfig
+        
+        -- Очищаем старые сохраненные значения прозрачности
+        config.OriginalTransparency = {}
+        
+        if config.Enabled then
+            -- Небольшая задержка, чтобы персонаж полностью загрузился
+            task.wait(0.5)
+            getgenv().applySelfTransparency()
+        end
+    end)
+end
+
+-- Сохраняем соединение для возможности отключения
+if getgenv().selfTransparencyCharacterConnection then
+    getgenv().selfTransparencyCharacterConnection:Disconnect()
+    getgenv().selfTransparencyCharacterConnection = nil
+end
+getgenv().selfTransparencyCharacterConnection = LP.CharacterAdded:Connect(getgenv().updateSelfTransparencyOnCharacterChange)
+
+-- UI для SelfTransparency
+getgenv().SelfTransparencyToggle = addToggleWithNotify(getgenv().SelfChamsGroup, 'SelfTransparencyEnabled', {
+    Text = 'SelfTransparency',
+    Default = getgenv().SelfTransparencyConfig.Enabled,
+    Callback = function(v)
+        getgenv().SelfTransparencyConfig.Enabled = v
+        
+        if v then
+            getgenv().applySelfTransparency()
+        else
+            getgenv().removeSelfTransparency()
+        end
+    end,
+    Tooltip = '>_<'
+})
+
+-- Создаем зависимый слайдер для настройки прозрачности
+getgenv().SelfTransparencyDependency = getgenv().SelfChamsGroup:AddDependencyBox()
+
+getgenv().SelfTransparencyDependency:AddSlider('SelfTransparencyValue', {
+    Text = 'Transparency',
+    Default = getgenv().SelfTransparencyConfig.Transparency,
+    Min = 0,
+    Max = 1,
+    Rounding = 2,
+    Callback = function(val)
+        getgenv().SelfTransparencyConfig.Transparency = val
+        
+        if getgenv().SelfTransparencyConfig.Enabled then
+            getgenv().applySelfTransparency()
+        end
+    end
+})
+
+-- Устанавливаем зависимость от тогла SelfTransparency
+getgenv().SelfTransparencyDependency:SetupDependencies({{Toggles.SelfTransparencyEnabled, true}})
+
 -- Функция для очистки всех ресурсов и соединений
 getgenv().cleanupVisualEffects = function()
     -- Отключаем SelfChams если включен
@@ -2070,6 +2228,11 @@ getgenv().cleanupVisualEffects = function()
     -- Отключаем SelfHighlight если включен
     if getgenv().SelfHighlightConfig and getgenv().SelfHighlightConfig.Enabled then
         getgenv().removeSelfHighlight()
+    end
+    
+    -- Отключаем SelfTransparency если включен
+    if getgenv().SelfTransparencyConfig and getgenv().SelfTransparencyConfig.Enabled then
+        getgenv().removeSelfTransparency()
     end
     
     -- Функция для безопасного отключения соединений
@@ -2084,7 +2247,16 @@ getgenv().cleanupVisualEffects = function()
     -- Отключаем соединения
     getgenv().selfChamsCharacterConnection = safeDisconnect(getgenv().selfChamsCharacterConnection)
     getgenv().selfHighlightCharacterConnection = safeDisconnect(getgenv().selfHighlightCharacterConnection)
+    getgenv().selfTransparencyCharacterConnection = safeDisconnect(getgenv().selfTransparencyCharacterConnection)
+    getgenv().InvisDesyncConnection = safeDisconnect(getgenv().InvisDesyncConnection)
+    getgenv().InvisDesyncRespawnConnection = safeDisconnect(getgenv().InvisDesyncRespawnConnection)
     getgenv().memoryCleanupTimer = safeDisconnect(getgenv().memoryCleanupTimer)
+    
+    -- Отключаем InvisDesync если включен
+    if getgenv().InvisDesyncConfig and getgenv().InvisDesyncConfig.Enabled then
+        -- Вызываем функцию отключения, которая сбросит NetworkIsSleeping
+        getgenv().toggleInvisDesync(false)
+    end
     
     -- Принудительно запускаем сборщик мусора с правильным синтаксисом
     gcinfo()
@@ -2791,6 +2963,89 @@ YawLockerGroup:AddToggle('YawLockerDisableAutoRotate', {
 LP.CharacterAdded:Connect(function(char)
     if YawLockerConfig.Enabled or YawLockerConfig.DisableAutoRotate then
         applyYawLockerAutoRotate()
+    end
+end)
+
+-- === Noclip (Player tab) ===
+local NoclipGroup = Tabs.Player:AddLeftGroupbox('>_<')
+
+-- Noclip configuration
+getgenv().NoclipConfig = {
+    Enabled = false,
+    Connection = nil
+}
+
+-- Function to apply noclip
+local function applyNoclip(character, state)
+    if not character then return end
+    
+    for _, part in ipairs(character:GetDescendants()) do
+        if part:IsA('BasePart') then
+            if state then
+                -- Store original collision state if not already stored
+                if not part:GetAttribute('NoclipOrigCollision') then
+                    part:SetAttribute('NoclipOrigCollision', part.CanCollide)
+                end
+                part.CanCollide = false
+            else
+                -- Restore original collision state
+                if part:GetAttribute('NoclipOrigCollision') ~= nil then
+                    part.CanCollide = part:GetAttribute('NoclipOrigCollision')
+                    part:SetAttribute('NoclipOrigCollision', nil)
+                end
+            end
+        end
+    end
+end
+
+-- Function to toggle noclip
+local function toggleNoclip(state)
+    local config = getgenv().NoclipConfig
+    config.Enabled = state
+    
+    -- Disconnect existing connection if any
+    if config.Connection then
+        config.Connection:Disconnect()
+        config.Connection = nil
+    end
+    
+    -- If enabling noclip, set up heartbeat connection
+    if state then
+        local char = LP.Character
+        if char then
+            applyNoclip(char, true)
+        end
+        
+        config.Connection = HRT:Connect(function()
+            local character = LP.Character
+            if character then
+                applyNoclip(character, true)
+            end
+        end)
+    else
+        -- If disabling, restore collision
+        local char = LP.Character
+        if char then
+            applyNoclip(char, false)
+        end
+    end
+end
+
+-- Add noclip toggle to the UI
+addToggleWithNotify(NoclipGroup, 'NoclipEnabled', {
+    Text = 'Noclip',
+    Default = false,
+    Callback = function(v)
+        toggleNoclip(v)
+    end,
+    Tooltip = 'Removes collision with objects'
+})
+
+-- Connect to CharacterAdded to handle respawns
+LP.CharacterAdded:Connect(function(char)
+    if getgenv().NoclipConfig.Enabled then
+        task.wait(0.5) -- Small delay to ensure character is fully loaded
+        applyNoclip(char, true)
     end
 end)
 
@@ -3582,6 +3837,110 @@ ChatBypassGroup:AddButton({
     Text = 'Send',
     Func = function()
         G.sendChatBypassText()
+    end,
+    Tooltip = '>_<'
+})
+
+-- === InvisDesync (Misc tab, в MiscUtilsGroup) ===
+-- Глобальные переменные для InvisDesync
+getgenv().InvisDesyncConfig = {
+    Enabled = false,
+    FlipState = false
+}
+
+-- Функция для получения HumanoidRootPart
+getgenv().getHRP = function()
+    local character = S.PS.LocalPlayer.Character or S.PS.LocalPlayer.CharacterAdded:Wait()
+    return character:WaitForChild("HumanoidRootPart", 5)
+end
+
+-- Соединение для десинка
+getgenv().InvisDesyncConnection = nil
+
+-- Функция для активации только FakePos без изменения состояния
+getgenv().applyFakePos = function()
+    pcall(function()
+        setfflag("S2PhysicsSenderRate", "1")
+        setfpscap(1)
+        task.wait(0.1)
+        setfflag("S2PhysicsSenderRate", "200")
+        setfpscap(240)
+    end)
+end
+
+-- Функция для включения/выключения комбинированного InvisDesync + FakePos
+getgenv().toggleInvisDesync = function(state)
+    getgenv().InvisDesyncConfig.Enabled = state
+    
+    -- Отключаем существующее соединение, если есть
+    if getgenv().InvisDesyncConnection then
+        getgenv().InvisDesyncConnection:Disconnect()
+        getgenv().InvisDesyncConnection = nil
+    end
+    
+    -- Сбрасываем NetworkIsSleeping в false при выключении
+    if not state then
+        local hrp = getgenv().getHRP()
+        if hrp then
+            pcall(function()
+                sethiddenproperty(hrp, "NetworkIsSleeping", false)
+            end)
+        end
+        return
+    end
+    
+    if state then
+        -- Активируем FakePos
+        getgenv().applyFakePos()
+        
+        -- Активируем Desync
+        getgenv().InvisDesyncConnection = S.RS.Heartbeat:Connect(function()
+            if getgenv().InvisDesyncConfig.Enabled then
+                local hrp = getgenv().getHRP()
+                if hrp then
+                    getgenv().InvisDesyncConfig.FlipState = not getgenv().InvisDesyncConfig.FlipState
+                    pcall(function()
+                        sethiddenproperty(hrp, "NetworkIsSleeping", getgenv().InvisDesyncConfig.FlipState)
+                    end)
+                end
+            end
+        end)
+    end
+end
+
+-- UI для комбинированного InvisDesync + FakePos
+addToggleWithNotify(MiscUtilsGroup, 'InvisDesyncEnabled', {
+    Text = 'Fake Pos',
+    Default = false,
+    Callback = function(v)
+        getgenv().toggleInvisDesync(v)
+        
+        -- Если включаем, добавляем обработчик восстановления после смерти
+        if v then
+            -- Отключаем предыдущий обработчик, если он существует
+            if getgenv().InvisDesyncRespawnConnection then
+                getgenv().InvisDesyncRespawnConnection:Disconnect()
+                getgenv().InvisDesyncRespawnConnection = nil
+            end
+            
+            -- Создаем новый обработчик для восстановления FakePos после смерти
+            getgenv().InvisDesyncRespawnConnection = LP.CharacterAdded:Connect(function(newChar)
+                -- Небольшая задержка для полной загрузки персонажа
+                task.wait(0.5)
+                
+                -- Проверяем, что FakePos все еще должен быть включен
+                if getgenv().InvisDesyncConfig and getgenv().InvisDesyncConfig.Enabled then
+                    -- Повторно применяем FakePos
+                    getgenv().applyFakePos()
+                end
+            end)
+        else
+            -- Отключаем обработчик при выключении функции
+            if getgenv().InvisDesyncRespawnConnection then
+                getgenv().InvisDesyncRespawnConnection:Disconnect()
+                getgenv().InvisDesyncRespawnConnection = nil
+            end
+        end
     end,
     Tooltip = '>_<'
 })
@@ -6468,11 +6827,22 @@ local function performStomp()
     if getgenv().AutoStomp.stompCounter <= 0 then
         getgenv().AutoStomp.isActive = false
         resetAutoStompCamera()
+        
+        -- Восстанавливаем FakePos после завершения цикла стомпов
+        if getgenv().InvisDesyncConfig and getgenv().InvisDesyncConfig.Enabled then
+            -- Небольшая задержка перед восстановлением FakePos
+            task.delay(0.2, function()
+                getgenv().applyFakePos()
+            end)
+        end
     end
 end
 
 -- Основная функция AutoStomp
 G.applyAutoStomp = function()
+    -- Сохраняем состояние FakePos перед выполнением AutoStomp
+    local fakePosWasActive = getgenv().InvisDesyncConfig and getgenv().InvisDesyncConfig.Enabled
+    
     if not getgenv().AutoStomp.Enabled then
         if getgenv().AutoStomp.isActive then
             getgenv().AutoStomp.isActive = false
@@ -6480,6 +6850,11 @@ G.applyAutoStomp = function()
             getgenv().AutoStomp.lastStompTime = nil
             getgenv().AutoStomp.delayStartTime = nil
             resetAutoStompCamera()
+            
+            -- Восстанавливаем FakePos после завершения AutoStomp, если он был активен
+            if fakePosWasActive and getgenv().InvisDesyncConfig and getgenv().InvisDesyncConfig.Enabled then
+                getgenv().applyFakePos()
+            end
         end
         return
     end
