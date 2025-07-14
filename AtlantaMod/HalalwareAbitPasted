@@ -75,7 +75,7 @@ local T = getgenv().T
 local STR = getgenv().STR
 
 getgenv().Library = loadstring(game:HttpGet('https://raw.githubusercontent.com/xzcReasd/PastedLibs/refs/heads/main/AtlantaMod/libtest'))()
-getgenv().ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/ZXCdswqezxc/halalware/refs/heads/main/themes'))()
+getgenv().ThemeManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/xzcReasd/PastedLibs/refs/heads/main/AtlantaMod/themes'))()
 getgenv().SaveManager = loadstring(game:HttpGet('https://raw.githubusercontent.com/ZXCdswqezxc/halalware/refs/heads/main/savemanager'))()
 local repo = getgenv().repo
 local Library = getgenv().Library
