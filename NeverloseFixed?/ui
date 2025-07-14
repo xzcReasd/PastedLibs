@@ -1563,7 +1563,7 @@ function Neverlose_Main:Window(config)
     NewsText.Position = UDim2.new(0, 0, 0.649999976, 0)
     NewsText.Size = UDim2.new(0, 92, 0, 18)
     NewsText.Font = Enum.Font.GothamBold
-    NewsText.Text = "Latest News: <font color='rgb(9, 174, 255)'>"..BuildInfo:GetNews().."</font>"
+    NewsText.Text = "Latest News: <font color='rgb(9, 174, 255)'>".."Unknown".."</font>"
     NewsText.TextColor3 = Color3.fromRGB(255, 255, 255)
     NewsText.TextSize = 14.000
     NewsText.TextXAlignment = Enum.TextXAlignment.Left
