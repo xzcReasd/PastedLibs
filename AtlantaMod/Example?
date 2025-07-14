@@ -1,4 +1,4 @@
-local library = loadstring(game:HttpGet("ССЫЛКА_НА_RAW"))()
+local library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xzcReasd/PastedLibs/refs/heads/main/AtlantaMod/Source"))()
 
 -- documentation
 local window = library:window({
