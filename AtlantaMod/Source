@@ -5003,4 +5003,4 @@ function library:playerlist(options)
 	return setmetatable(cfg, library)
 end
 --
-return library
+return library, dim2, hex, rgbseq, rgbkey, themes, flags, random, lp
